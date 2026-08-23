@@ -1,0 +1,9 @@
+.venv/
+**/.env
+**/.env.local
+frontend/node_modules/
+frontend/dist/
+mysite/media/
+mysite/staticfiles/
+**/__pycache__/
+**/*.pyc
