@@ -1,0 +1,33 @@
+[Unit]
+Description=ITAdis CRM Gunicorn Daemon
+After=network.target
+
+[Service]
+User=itadis
+Group=itadis
+WorkingDirectory=/home/itadis/apps/ITAdisCRMBackend/backend
+EnvironmentFile=/home/itadis/apps/ITAdisCRMBackend/backend/.env.production
+
+ExecStart=/home/itadis/apps/ITAdisCRMBackend/backend/venv/bin/gunicorn \
+          --workers 4 \
+          --worker-class sync \
+          --bind unix:/home/itadis/apps/ITAdisCRMBackend/backend/itadis.sock \
+          --timeout 120 \
+          --access-logfile /home/itadis/apps/ITAdisCRMBackend/backend/logs/gunicorn-access.log \
+          --error-logfile /home/itadis/apps/ITAdisCRMBackend/backend/logs/gunicorn-error.log \
+          --log-level info \
+          mysite.wsgi:application
+
+# Restart policy
+Restart=on-failure
+RestartSec=5s
+
+# Security
+PrivateTmp=true
+NoNewPrivileges=true
+
+# Resource limits
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
