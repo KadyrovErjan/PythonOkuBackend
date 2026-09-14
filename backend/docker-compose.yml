@@ -11,28 +11,27 @@ services:
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    networks:
+      - itadis_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-itadis_user}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - itadis_network
 
   # Django Web Application
   web:
     build: .
     container_name: itadis_web
+    restart: always
     command: >
       sh -c "python manage.py collectstatic --noinput &&
              python manage.py migrate &&
-             gunicorn mysite.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120"
+             gunicorn mysite.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120 --access-logfile - --error-logfile -"
     volumes:
-      - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+      - ./logs:/app/logs
     ports:
       - "8000:8000"
     env_file:
@@ -40,12 +39,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/admin/login/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     networks:
       - itadis_network
 
